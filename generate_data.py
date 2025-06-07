@@ -1,18 +1,18 @@
 import random
 import os
-
 def generate_modular_data(p, operator):
     data = []
-    for a in range(p + 1):
-        for b in range(p + 1):
+    for a in range(p):
+        for b in range(p):
             if operator == '+':
                 c = (a + b) % p
             elif operator == '-':
                 c = (a - b) % p
             elif operator == '/':
-                if b == 0 or a % b != 0:
-                    continue
-                c = (a // b) % p
+                if b == 0:
+                    continue  # no inverse for 0
+                b_inv = pow(b, p - 2, p)  # Fermat's Little Theorem
+                c = (a * b_inv) % p
             else:
                 continue
             data.append(f"{a} {operator} {b} = {c}")

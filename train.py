@@ -109,30 +109,34 @@ class Trainer:
         self.model.train()
         return out
     
-    def train_step(self, X, Y, loss_mask=None):
-        """Single training step"""
+    def train_step(self, X, Y, loss_mask=None, mask_until_equals=False):
+        """Single training step supporting both static and dynamic '=' masking"""
         logits = self.model(X)
-        
+        batch_size, seq_len = Y.shape
+
+        if loss_mask is None and mask_until_equals:
+            # Dynamically mask everything before and including '='
+            loss_mask = torch.ones_like(Y, dtype=torch.float32)
+            equals_token = self.config['char_to_idx']['=']
+
+            for i in range(batch_size):
+                # Find index of first '='
+                eq_idx = (X[i] == equals_token).nonzero(as_tuple=False)
+                if len(eq_idx) > 0:
+                    first_eq = eq_idx[0].item()
+                    loss_mask[i, :first_eq + 1] = 0  # Mask up to and including '='
+                else:
+                    loss_mask[i, :] = 0  # If no '=', mask all (fail-safe)
+
         if loss_mask is not None:
-            # Apply loss mask (e.g., for masking first few tokens)
-            batch_size, seq_len = Y.shape
+            # Compute loss with masking
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), Y.view(-1), reduction='none')
             loss = loss.view(batch_size, seq_len)
-            
-            # Resize loss_mask if needed
-            if loss_mask.shape[1] != seq_len:
-                # Create a new mask of the right size
-                effective_mask = loss_mask[:, :seq_len] if loss_mask.shape[1] > seq_len else torch.ones((batch_size, seq_len), device=loss_mask.device)
-                if loss_mask.shape[1] < seq_len:
-                    effective_mask[:, :loss_mask.shape[1]] = loss_mask
-            else:
-                effective_mask = loss_mask
-                
-            loss = loss * effective_mask
-            loss = loss.sum() / effective_mask.sum()
+            loss = (loss * loss_mask).sum() / loss_mask.sum()
         else:
+            # Default: unmasked loss
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), Y.view(-1), ignore_index=-1)
-        
+
         return loss, logits
     
     def train(self, train_data, val_data=None, loss_mask=None):
@@ -175,7 +179,7 @@ class Trainer:
             X, Y = self.get_batch(train_data, self.config['batch_size'], self.device)
             
             # Forward pass
-            loss, logits = self.train_step(X, Y, loss_mask)
+            loss, logits = self.train_step(X, Y, loss_mask=loss_mask, mask_until_equals=self.config.get('mask_until_equals', False))
             
             # Backward pass
             self.optimizer.zero_grad(set_to_none=True)
