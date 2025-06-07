@@ -171,7 +171,7 @@ class Trainer:
                     # No validation data, just compute train loss
                     X, Y = self.get_batch(train_data, self.config['batch_size'], self.device)
                     with torch.no_grad():
-                        loss, _ = self.train_step(X, Y, loss_mask)
+                        loss, _ = self.train_step(X, Y, loss_mask, mask_until_equals=self.config.get('mask_until_equals', False))
                     print(f"step {iter_num}: train loss {loss:.4f}")
                     train_losses.append(loss.item())
             
@@ -179,7 +179,7 @@ class Trainer:
             X, Y = self.get_batch(train_data, self.config['batch_size'], self.device)
             
             # Forward pass
-            loss, logits = self.train_step(X, Y, loss_mask=loss_mask, mask_until_equals=self.config.get('mask_until_equals', False))
+            loss, _ = self.train_step(X, Y, loss_mask=loss_mask, mask_until_equals=self.config.get('mask_until_equals', False))
             
             # Backward pass
             self.optimizer.zero_grad(set_to_none=True)

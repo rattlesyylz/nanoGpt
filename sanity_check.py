@@ -228,7 +228,7 @@ def plot_training_curves(output_dir, history, title="Training Loss"):
     plt.plot(iterations, history['train_losses'], 'b-', label='Train Loss', linewidth=2)
     
     if history['val_losses']:
-        plt.plot(iterations, history['val_losses'], 'r-', label='Val Loss', linewidth=2)
+        plt.plot(iterations, history['val_losses'], 'r-', label='Test Loss', linewidth=2)
     
     plt.xlabel('Training Steps')
     plt.ylabel('Loss')
