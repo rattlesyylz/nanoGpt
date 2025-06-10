@@ -39,3 +39,4 @@ def generate_all_data():
             print(f"Generated {len(data)} samples for {name} mod {p}")
 
 generate_all_data()
+

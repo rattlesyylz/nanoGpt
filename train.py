@@ -75,8 +75,10 @@ class Trainer:
         os.makedirs(config['out_dir'], exist_ok=True)
         
         # Save config
+        config_to_save = {k: v for k, v in config.items() if not isinstance(v, (np.ndarray, list))}
         with open(os.path.join(config['out_dir'], 'config.json'), 'w') as f:
-            json.dump(config, f, indent=2)
+            json.dump(config_to_save, f, indent=2)
+
     
     def get_batch(self, data, batch_size, device):
         """Generate a batch of data"""

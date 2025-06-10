@@ -79,7 +79,9 @@ class TextGenerator:
     
     def encode(self, text):
         """Encode text to token indices"""
-        return [self.char_to_idx.get(ch, 0) for ch in text]  # Use 0 for unknown chars
+        if any(ch not in self.char_to_idx for ch in text):
+            raise ValueError(f"Unknown character(s) in input: {set(ch for ch in text if ch not in self.char_to_idx)}")
+        return [self.char_to_idx[ch] for ch in text]
     
     def decode(self, indices):
         """Decode token indices to text"""
@@ -202,7 +204,7 @@ def main():
     return full_text
 
 
-def test_sanity_check(model_path):
+def test_sanity_check(model_path, temperature=0.8):
     """
     Test function for sanity check - should reproduce the memorized string
     """
@@ -214,25 +216,32 @@ def test_sanity_check(model_path):
     
     # Test with empty prompt (unconditional generation)
     print("\n1. Unconditional generation:")
-    result = generator.sample_unconditional(max_tokens=50, temperature=0.1)  # Low temperature for deterministic output
+    result = generator.sample_unconditional(max_tokens=50, temperature=temperature)  # Low temperature for deterministic output
     
     # Test with partial prompt
     print("\n2. Completing partial prompt:")
     partial_prompts = ["I", "I love", "I love machine"]
     for prompt in partial_prompts:
         print(f"\nPrompt: '{prompt}'")
-        result = generator.complete_text(prompt, max_new_tokens=20, temperature=0.1)
+        result = generator.complete_text(prompt, max_new_tokens=20, temperature=temperature)
     
     print("\n" + "=" * 60)
 
 
 if __name__ == "__main__":
     import sys
-    
-    if len(sys.argv) > 1 and sys.argv[1] == 'test':
-        # Run sanity check
-        model_path = sys.argv[2] if len(sys.argv) > 2 else 'out/final_model.pt'
-        test_sanity_check(model_path)
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mode", choices=["test", "generate"])
+    parser.add_argument("model_path", help="Path to model checkpoint")
+    parser.add_argument("--prompt", default="", help="Prompt for generation")
+    parser.add_argument("--temperature", type=float, default=1.0, help="Sampling temperature")
+    args = parser.parse_args()
+
+    if args.mode == "test":
+        test_sanity_check(args.model_path, temperature=args.temperature)
     else:
-        # Run main generation
-        main()
+        generator = TextGenerator(args.model_path)
+        result = generator.complete_text(args.prompt, temperature=args.temperature)
+        print(result)
