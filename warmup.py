@@ -24,13 +24,13 @@ def run_operation_test(operation, prime, seed):
     # Configuration for operations test, aligned with paper specifications
     config = {
         # Data
-        'batch_size': 1,  # Small batch for memorization
+        'batch_size': 16,
         'block_size': 32,
         'mask_until_equals': True,
         'char_to_idx': None,  # Will be set based on data
         
         # Model
-        'n_layer': 1,
+        'n_layer': 2,
         'n_head': 4,
         'n_embd': 128,
         'n_ffwd': 512,
@@ -40,7 +40,7 @@ def run_operation_test(operation, prime, seed):
         
         # Training
         'learning_rate': 1e-3,
-        'max_iters': 10000,
+        'max_iters': 100000,
         'weight_decay': 1.0,
         'beta1': 0.9,
         'beta2': 0.98,
@@ -52,7 +52,7 @@ def run_operation_test(operation, prime, seed):
         
         # System
         'seed': seed,
-        'out_dir': f'out_operation_test/single_layer/{operation}_{prime}_seed{seed}',
+        'out_dir': f'out_operation_test/double_layer/{operation}_{prime}_seed{seed}',
     }
     
     # Prepare data
