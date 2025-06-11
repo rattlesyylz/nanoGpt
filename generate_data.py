@@ -21,7 +21,9 @@ def generate_modular_data(p, operator):
 def write_splits(data, prefix, p):
     random.shuffle(data)
     n = len(data)
-    train, val, test = data[:int(0.8 * n)], data[int(0.8 * n):int(0.9 * n)], data[int(0.9 * n):]
+    train = data[:int(0.5 * n)]
+    val = data[int(0.5 * n):int(0.75 * n)]
+    test = data[int(0.75 * n):]
 
     os.makedirs("data", exist_ok=True)
     with open(f"data/train_{prefix}_{p}.txt", "w") as f:
@@ -30,6 +32,8 @@ def write_splits(data, prefix, p):
         f.write("\n".join(val))
     with open(f"data/test_{prefix}_{p}.txt", "w") as f:
         f.write("\n".join(test))
+
+    print(f"Train/val/test sizes: {len(train)} / {len(val)} / {len(test)}")
 
 def generate_all_data():
     for p in [97, 113]:

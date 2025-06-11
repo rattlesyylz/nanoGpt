@@ -71,7 +71,7 @@ config = {
     "val_data": val_data,
     "out_dir": out_dir,
     "batch_size": 512,
-    "learning_rate": 1e-3,
+    "learning_rate": 1e-4,
     "max_iters": max_iters,
     "weight_decay": 1.0,
     "beta1": 0.9,
@@ -100,7 +100,7 @@ with open(history_path, "w") as f:
         "config": config_to_save
     }, f, indent=2)
 
-
+ 
 # === Save final model ===
 ckpt_path = os.path.join(out_dir, "final_model.pt")
 torch.save(model.state_dict(), ckpt_path)
